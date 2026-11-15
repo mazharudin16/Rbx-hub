@@ -1,65 +1,72 @@
 -- ==========================================
--- MAZHAR'S PREMIUM HUB (Custom Build)
+-- MAZHAR'S PREMIUM HUB (Reverse Engineered)
 -- ==========================================
-
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
+local Workspace = game:GetService("Workspace")
 
--- 1. AUTO STEAL
-function AutoSteal()
-    local args = {
-        [1] = "Steal"
-    }
-    -- Ye function game ke remote event ko trigger karta hai (Game specific)
-    local remote = game:GetService("ReplicatedStorage"):FindFirstChild("StealEvent")
-    if remote then
-        remote:FireServer(unpack(args))
-        print("Steal Triggered")
-    else
-        print("Steal function not found in this game.")
-    end
-end
-
--- 2. HIGHEST EGG PREDICTOR
-function GetHighestEgg()
-    local bestEgg = nil
-    local highestValue = 0
-    
-    -- Game ke map mein eggs dhoondo (Tumhe game ke hisaab se path change karna hoga)
-    for _, obj in pairs(workspace:GetChildren()) do
-        if obj.Name:find("Egg") then
-            -- Yahan value read karne ka logic aayega
-            print("Found Egg: " .. obj.Name)
-        end
-    end
-end
-
--- 3. SPEED BOOST (Custom Amount)
-function SetSpeed(amount)
-    local char = LocalPlayer.Character
-    if char and char:FindFirstChild("Humanoid") then
-        -- Anti-cheat bypass loop
-        task.spawn(function()
-            while task.wait(0.1) do
-                if char and char:FindFirstChild("Humanoid") then
-                    char.Humanoid.WalkSpeed = amount
-                end
-            end
-        end)
-    end
-end
-
--- 4. AUTO TREADMILL
+-- 1. AUTO TREADMILL
 function AutoTreadmill()
     local char = LocalPlayer.Character
-    if char and char:FindFirstChild("HumanoidRootPart") then
-        -- Treadmill ka part dhoondo
-        for _, part in pairs(workspace:GetDescendants()) do
-            if part.Name:find("Treadmill") then
-                char.HumanoidRootPart.CFrame = part.CFrame
-                print("Teleported to Treadmill")
-                break
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    
+    -- Game mein Treadmill dhoondo
+    for _, obj in pairs(Workspace:GetDescendants()) do
+        if obj.Name == "TreadmillBottom" or obj.Name == "TreadmillUpgrade" then
+            char.HumanoidRootPart.CFrame = obj.CFrame + Vector3.new(0, 3, 0)
+            print("Teleported to Treadmill: " .. obj:GetFullName())
+            return
+        end
+    end
+    print("Treadmill nahi mila is server mein!")
+end
+
+-- 2. SPEED BOOST (Using Game's WriteWalkSpeed)
+function SetSpeed(speed)
+    local remote = ReplicatedStorage:FindFirstChild("Packages")
+    if remote then
+        remote = remote:FindFirstChild("Networking")
+        if remote then
+            remote = remote:FindFirstChild("RE")
+            if remote then
+                local speedRemote = remote:FindFirstChild("StaffConsole") 
+                if speedRemote then
+                     speedRemote = speedRemote:FindFirstChild("WriteWalkSpeed")
+                     if speedRemote then
+                         speedRemote:FireServer(speed)
+                     end
+                end
             end
         end
     end
+    
+    -- Fallback (Agar remote kaam na kare)
+    local char = LocalPlayer.Character
+    if char and char:FindFirstChild("Humanoid") then
+        char.Humanoid.WalkSpeed = speed
+    end
+end
+
+-- 3. AUTO STEAL (Beanstalk Event)
+function AutoSteal()
+    local remote = ReplicatedStorage:FindFirstChild("Packages")
+    if remote then
+        remote = remote:FindFirstChild("Networking")
+        if remote then
+            remote = remote:FindFirstChild("RE")
+            if remote then
+                local stealRemote = remote:FindFirstChild("BeanstalkEvent")
+                if stealRemote then
+                    stealRemote = stealRemote:FindFirstChild("AskStealEgg")
+                    if stealRemote then
+                        stealRemote:FireServer()
+                        print("Steal Triggered!")
+                        return
+                    end
+                end
+            end
+        end
+    end
+    print("Steal Remote nahi mila.")
 end
